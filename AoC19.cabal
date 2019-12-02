@@ -25,6 +25,8 @@ library
 
   build-depends:       base-noprelude ^>= 4.12.0.0
                      , relude
+                     , comonad
+                     , text
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns

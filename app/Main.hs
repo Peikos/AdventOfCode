@@ -1,7 +1,10 @@
 module Main (main) where
 
-import First
+import qualified First
+import qualified Second
 
 main :: IO ()
-main = do firstAnswer >>= print
-          secondAnswer >>= print
+main = do First.firstAnswer >>= print
+          First.secondAnswer >>= print
+          Second.firstAnswer >>= print
+          Second.secondAnswer >>= print

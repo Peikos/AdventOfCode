@@ -1,4 +1,4 @@
-module First where
+module First (firstAnswer, secondAnswer) where
 
 import Data.Monoid ()
 
