@@ -1,7 +1,7 @@
 module Main (main) where
 
-import AoC19 (someFunc)
-
+import First
 
 main :: IO ()
-main = someFunc
+main = do firstAnswer >>= print
+          secondAnswer >>= print
