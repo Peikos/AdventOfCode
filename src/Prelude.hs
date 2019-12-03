@@ -2,7 +2,7 @@
 
 module Prelude
        ( module Relude
-       , atIdx, singleton
+       , atIdx, indexOf, singleton, bimapBoth
        ) where
 
 import Relude
@@ -14,4 +14,12 @@ singleton = return
 atIdx :: [a] -> Int -> Maybe a
 atIdx xs i | i < length xs = Just $ xs !! i
            | otherwise   = Nothing
+
+bimapBoth :: Bifunctor f => (a -> b) -> f a a -> f b b
+bimapBoth f = bimap f f
+
+indexOf :: Eq a => [a] -> a -> Maybe Int
+indexOf (x:xs) t | x == t    = Just 0
+                 | otherwise = succ <$> indexOf xs t
+indexOf [] _ = Nothing
 
