@@ -2,7 +2,7 @@
 
 module Prelude
        ( module Relude
-       , atIdx, indexOf, singleton, bimapBoth
+       , atIdx, indexOf, singleton, bimapBoth, guarded
        ) where
 
 import Relude
@@ -23,3 +23,5 @@ indexOf (x:xs) t | x == t    = Just 0
                  | otherwise = succ <$> indexOf xs t
 indexOf [] _ = Nothing
 
+guarded :: Alternative m => (a -> Bool) -> a -> m a
+guarded p v = if p v then pure v else empty

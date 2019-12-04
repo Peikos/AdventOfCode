@@ -3,6 +3,7 @@ module Main (main) where
 import qualified First
 import qualified Second
 import qualified Third
+import qualified Fourth
 
 main :: IO ()
 main = do putStrLn "# Day 1"
