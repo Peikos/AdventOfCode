@@ -27,6 +27,7 @@ library
                      , relude
                      , comonad
                      , text
+                     , mtl
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns

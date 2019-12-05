@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Fourth where
 
 imin, imax :: Int
@@ -23,6 +21,6 @@ findCode :: (Int -> Bool) -> Int
 findCode p = length [ s | s <- map digits [imin..imax]
                     , monotonic s, digitOccurrence p s]
 
-first, second :: Int
-first = findCode (>=2)
-second = findCode (==2)
+firstAnswer, secondAnswer :: Int
+firstAnswer = findCode (>=2)
+secondAnswer = findCode (==2)

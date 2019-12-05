@@ -1,8 +1,11 @@
+{-# LANGUAGE OverloadedStrings #-}
+
 -- | Uses [relude](https://hackage.haskell.org/package/relude) as default Prelude.
 
 module Prelude
        ( module Relude
-       , atIdx, indexOf, singleton, bimapBoth, guarded
+       , atIdx, indexOf, singleton, bimapBoth, guarded, fromJust, mmap
+       , toStream
        ) where
 
 import Relude
@@ -25,3 +28,13 @@ indexOf [] _ = Nothing
 
 guarded :: Alternative m => (a -> Bool) -> a -> m a
 guarded p v = if p v then pure v else empty
+
+fromJust :: Maybe a -> a
+fromJust (Just x) = x
+fromJust Nothing = error "fromJust: Nothing"
+
+mmap :: (a -> b) -> Maybe a -> Maybe b
+mmap = fmap
+
+toStream :: [Maybe a] -> NonEmpty (Maybe a)
+toStream = fromJust . nonEmpty . (<> repeat Nothing)
