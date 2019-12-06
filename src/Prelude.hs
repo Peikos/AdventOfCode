@@ -5,11 +5,13 @@
 module Prelude
        ( module Relude
        , atIdx, indexOf, singleton, bimapBoth, guarded, fromJust, mmap
-       , toStream
+       , toStream, maybeAny, maybePlus, maybeMin, liftMaybeTuple
+       , Algebra, Coalgebra, topDown, bottomUp
        ) where
 
 import Relude
 import Data.List ((!!))
+import Data.Functor.Foldable
 
 singleton :: a -> [a]
 singleton = return
@@ -38,3 +40,26 @@ mmap = fmap
 
 toStream :: [Maybe a] -> NonEmpty (Maybe a)
 toStream = fromJust . nonEmpty . (<> repeat Nothing)
+
+maybeAny :: (n -> n -> n) -> Maybe n -> Maybe n -> Maybe n
+maybeAny f (Just a) (Just b) = Just $ f a b
+maybeAny _ a Nothing = a
+maybeAny _ Nothing b = b
+
+maybeMin :: Ord n => Maybe n -> Maybe n -> Maybe n
+maybeMin = maybeAny min
+
+maybePlus :: Num n => Maybe n -> Maybe n -> Maybe n
+maybePlus = maybeAny (+)
+
+liftMaybeTuple :: (Maybe a, b) -> Maybe (a, b)
+liftMaybeTuple (Just a, b) = Just (a, b)
+liftMaybeTuple _ = Nothing
+
+type Algebra f a = f a -> a
+type Coalgebra f a = a -> f a
+
+topDown, bottomUp :: Functor f => (Fix f -> Fix f) -> Fix f -> Fix f
+topDown f  = Fix <<< fmap (topDown f) <<< unfix <<< f
+bottomUp f = unfix >>> fmap (bottomUp f) >>> Fix >>> f
+
