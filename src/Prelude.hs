@@ -5,11 +5,13 @@
 module Prelude
        ( module Relude
        , atIdx, indexOf, singleton, bimapBoth, guarded, fromJust, mmap
-       , toStream, maybeAny, maybePlus, maybeMin, liftMaybeTuple
+       , toStream, maybeAny, maybePlus, maybeMin, liftMaybeTuple, zipWith3
        , Algebra, Coalgebra, topDown, bottomUp
+       , ifState
        ) where
 
 import Relude
+import Control.Monad.RWS.Lazy (RWST)
 import Data.List ((!!))
 import Data.Functor.Foldable
 
@@ -38,6 +40,9 @@ fromJust Nothing = error "fromJust: Nothing"
 mmap :: (a -> b) -> Maybe a -> Maybe b
 mmap = fmap
 
+zipWith3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
+zipWith3 f a b c = getZipList $ f <$> ZipList a <*> ZipList b <*> ZipList c
+
 toStream :: [Maybe a] -> NonEmpty (Maybe a)
 toStream = fromJust . nonEmpty . (<> repeat Nothing)
 
@@ -63,3 +68,6 @@ topDown, bottomUp :: Functor f => (Fix f -> Fix f) -> Fix f -> Fix f
 topDown f  = Fix <<< fmap (topDown f) <<< unfix <<< f
 bottomUp f = unfix >>> fmap (bottomUp f) >>> Fix >>> f
 
+ifState :: (Monad m, Monoid w) => (s -> Bool) -> RWST r w s m a -> RWST r w s m a -> RWST r w s m a
+ifState p t f = do b <- gets p
+                   if b then t else f

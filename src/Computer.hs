@@ -2,8 +2,9 @@
 
 module Computer where
 
-import Control.Comonad.Store (Store, store, runStore, peek, seek, seeks, experiment)
-import Control.Monad.RWS.Lazy (RWS, execRWS, tell)
+import Control.Comonad.Store ( Store, store, runStore, peek, seek, seeks
+                             , experiment)
+import Control.Monad.RWS.Lazy (RWST, execRWST, tell)
 
 import Fourth (digits)
 
@@ -18,8 +19,7 @@ type AluInst = Value -> Value -> Value
 type Pred = Value -> Bool
 type Comp = Value -> Value -> Bool
 type IntCode = Either Value Address 
-type Environment = NonEmpty (Maybe Int)
-type Computer = RWS Environment [Maybe Value] Program
+type Computer = RWST () [Maybe Value] Program (State [Value])
 type Instruction = (OpCode, [IntCode])
 type Action = Maybe (Computer ())
 type Operation = Instruction -> Action
@@ -28,7 +28,10 @@ type Memory = [Int]
 -- Programs
 
 toStore :: [Maybe Value] -> Program
-toStore = flip store 0 . (\xs -> join . atIdx xs)
+toStore = write (-1) (Just 0) . flip store 0 . (\xs -> join . atIdx xs)
+
+loadProgram :: [Int] -> Program
+loadProgram = toStore . map Just
 
 memDump :: Program -> Memory
 memDump = catMaybes . takeWhile isJust . experiment (const [0..])
@@ -85,9 +88,13 @@ poke a = write a >>> modify
 try :: Action -> Computer ()
 try = fromMaybe nop
 
-popInput :: Computer (Maybe Value) -- ToDo
-popInput = do h <- asks head
-              local (tail >>> toStream) $ return h
+popInput :: Computer (Maybe Value)
+popInput = do r <- lift $ gets $ viaNonEmpty head
+              lift $ modify $ fromMaybe [] . viaNonEmpty tail
+              return r
+
+queueInput :: Value -> Computer ()
+queueInput input = lift $ modify (++ [input])
 
 nop :: Computer ()
 nop = return ()
@@ -145,13 +152,26 @@ instructions = [oAdd, oMul, oRd, oWrt, oJT, oJF, oLT, oEq]
 
 -- Computer
 
-computer :: Computer ()
-computer = do op <- gets (fetch >>> decode)
-              case mapMaybe (op >>=) instructions of
-                  (c:_) -> c >> computer
-                  [] -> if isJust $ op >>= oHalt
-                          then return ()
-                          else error $ "Invalid operation: " <> show op
+computer :: Text -> Computer ()
+computer s = do op <- gets (fetch >>> decode)
+                case mapMaybe (op >>=) instructions of
+                    (c:_) -> if isJust $ op >>= oWrt
+                               then c
+                               else c >> computer s
+                    [] -> if isJust $ op >>= oHalt
+                            then poke (-1) (Just 1)
+                            else error $ "Invalid operation: " <> show op
+
+nonStop :: Text -> Computer ()
+nonStop s = ifState halted
+              (return ())
+              (computer s >> nonStop s)
 
 eval :: [Value] -> Program -> (Program, [Maybe Value])
-eval = execRWS computer . toStream . map Just
+eval = eval' (computer "")
+
+eval' :: Computer () -> [Value] -> Program -> (Program, [Maybe Value])
+eval' c i = flip evalState i . execRWST c ()
+
+halted :: Program -> Bool
+halted = (== Just 1) . peek (-1)

@@ -26,5 +26,5 @@ runTest :: Program -> Maybe [Value]
 runTest = sequence . snd . eval [8]
 
 firstAnswer, secondAnswer :: IO (Maybe [Int])
-firstAnswer = sequence . snd . eval [1] <$> input
+firstAnswer = sequence . snd . eval' (nonStop "") [1] <$> input
 secondAnswer = sequence . snd . eval [5] <$> input
