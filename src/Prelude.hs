@@ -4,8 +4,9 @@
 
 module Prelude
        ( module Relude
-       , atIdx, indexOf, singleton, bimapBoth, guarded, fromJust, mmap
-       , toStream, maybeAny, maybePlus, maybeMin, liftMaybeTuple, zipWith3
+       , atIdx, indexOf, singleton, bimapBoth, guarded, fromJust
+       , mmap, mapp, zippWith, zipWith3
+       , toStream, maybeAny, maybePlus, maybeMin, liftMaybeTuple
        , Algebra, Coalgebra, topDown, bottomUp
        , ifState
        ) where
@@ -39,6 +40,12 @@ fromJust Nothing = error "fromJust: Nothing"
 
 mmap :: (a -> b) -> Maybe a -> Maybe b
 mmap = fmap
+
+mapp :: (a -> b) -> [[a]] -> [[b]]
+mapp = map . map
+
+zippWith :: (a -> b -> c) -> [[a]] -> [[b]] -> [[c]]
+zippWith = zipWith . zipWith
 
 zipWith3 :: (a -> b -> c -> d) -> [a] -> [b] -> [c] -> [d]
 zipWith3 f a b c = getZipList $ f <$> ZipList a <*> ZipList b <*> ZipList c

@@ -23,6 +23,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Prelude, Computer, MonadStack
                      , First, Second, Third, Fourth, Fifth, Sixth, Seventh
+                     , Eighth
 
   build-depends:       base-noprelude ^>= 4.12.0.0
                      , relude
