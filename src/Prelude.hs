@@ -8,7 +8,7 @@ module Prelude
        , mmap, mapp, zippWith, zipWith3
        , toStream, maybeAny, maybePlus, maybeMin, liftMaybeTuple
        , Algebra, Coalgebra, topDown, bottomUp
-       , ifState
+       , ifState, bind2
        ) where
 
 import Relude
@@ -75,6 +75,10 @@ topDown, bottomUp :: Functor f => (Fix f -> Fix f) -> Fix f -> Fix f
 topDown f  = Fix <<< fmap (topDown f) <<< unfix <<< f
 bottomUp f = unfix >>> fmap (bottomUp f) >>> Fix >>> f
 
-ifState :: (Monad m, Monoid w) => (s -> Bool) -> RWST r w s m a -> RWST r w s m a -> RWST r w s m a
+ifState :: (Monad m, Monoid w) => (s -> Bool)
+        -> RWST r w s m a -> RWST r w s m a -> RWST r w s m a
 ifState p t f = do b <- gets p
                    if b then t else f
+
+bind2 :: Monad m => (a -> b -> m c) -> m a -> m b -> m c
+bind2 f x y = liftA2 (,) x y >>= uncurry f
