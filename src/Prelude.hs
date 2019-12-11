@@ -5,7 +5,7 @@
 module Prelude
        ( module Relude
        , atIdx, indexOf, singleton, bimapBoth, guarded, fromJust
-       , mmap, mapp, zippWith, zipWith3
+       , mmap, mapp, zippWith, zipWith3, chunks, fst3, snd3, thrd3
        , toStream, maybeAny, maybePlus, maybeMin, liftMaybeTuple
        , Algebra, Coalgebra, topDown, bottomUp
        , ifState, bind2
@@ -82,3 +82,16 @@ ifState p t f = do b <- gets p
 
 bind2 :: Monad m => (a -> b -> m c) -> m a -> m b -> m c
 bind2 f x y = liftA2 (,) x y >>= uncurry f
+
+chunks :: Int -> [a] -> [[a]]
+chunks dims = unfoldr f
+  where f :: [a] -> Maybe ([a], [a])
+        f [] = Nothing
+        f ps = Just $ splitAt dims ps
+
+fst3  :: (a, b, c) -> a
+fst3  (a, _, _) = a
+snd3  :: (a, b, c) -> b
+snd3  (_, b, _) = b
+thrd3 :: (a, b, c) -> c
+thrd3 (_, _, c) = c

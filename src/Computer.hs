@@ -214,3 +214,8 @@ runWith name = eval' (computer name)
 
 runCont :: Text -> [Value] -> ComputerState -> (ComputerState, [Maybe Value])
 runCont name = eval' (nonStop name)
+
+runSteps :: Int -> Text -> [Value] -> ComputerState -> (ComputerState, [Maybe Value])
+runSteps 0 _ _ cs = (cs, [])
+runSteps i name input cs = let (cs', out) = runWith name input cs
+                           in (out <>) <$> runSteps (pred i) "" [] cs'
