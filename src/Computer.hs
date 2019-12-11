@@ -205,3 +205,12 @@ eval = eval' (computer "")
 
 eval' :: Computer () -> [Value] -> ComputerState -> StateResult
 eval' c i = execRWS (modify (pushInput i) >> c) ()
+
+runTest :: ComputerState -> Maybe [Value]
+runTest = sequence . snd . eval []
+
+runWith :: Text -> [Value] -> ComputerState -> (ComputerState, [Maybe Value])
+runWith name = eval' (computer name)
+
+runCont :: Text -> [Value] -> ComputerState -> (ComputerState, [Maybe Value])
+runCont name = eval' (nonStop name)

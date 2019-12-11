@@ -1,4 +1,4 @@
-module Fourth where
+module Fourth (d4p1, d4p2, digits) where
 
 imin, imax :: Int
 imin = 168630
@@ -21,6 +21,6 @@ findCode :: (Int -> Bool) -> Int
 findCode p = length [ s | s <- map digits [imin..imax]
                     , monotonic s, digitOccurrence p s]
 
-firstAnswer, secondAnswer :: Int
-firstAnswer = findCode (>=2)
-secondAnswer = findCode (==2)
+d4p1, d4p2 :: Int
+d4p1 = findCode (>=2)
+d4p2 = findCode (==2)

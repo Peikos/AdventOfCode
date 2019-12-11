@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Third  where
+module Third (d3p1, d3p2, d3t0, d3t1, d3t2) where
 
 import Data.List (intersect)
 import Data.Text (splitOn)
@@ -59,14 +59,14 @@ shortestPath mw = do w <- mw
                      lens <- traverse (\int -> (+) <$> fa int <*> fb int) ints
                      closest lens
 
-test0, test1, test2 :: Maybe [WirePath]
-test0 = traverse readWirePath ["R8,U5,L5,D3"
-                              ,"U7,R6,D4,L4"]
-test1 = traverse readWirePath ["R75,D30,R83,U83,L12,D49,R71,U7,L72"
-                              ,"U62,R66,U55,R34,D71,R55,D58,R83"]
-test2 = traverse readWirePath ["R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51"
-                              ,"U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"]
+d3t0, d3t1, d3t2 :: Maybe [WirePath]
+d3t0 = traverse readWirePath ["R8,U5,L5,D3"
+                             ,"U7,R6,D4,L4"]
+d3t1 = traverse readWirePath ["R75,D30,R83,U83,L12,D49,R71,U7,L72"
+                             ,"U62,R66,U55,R34,D71,R55,D58,R83"]
+d3t2 = traverse readWirePath ["R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51"
+                             ,"U98,R91,D20,R16,D67,R40,U7,R15,U6,R7"]
 
-firstAnswer, secondAnswer :: IO (Maybe Int)
-firstAnswer = closestIntersect <$> input
-secondAnswer = shortestPath <$> input
+d3p1, d3p2 :: IO (Maybe Int)
+d3p1 = closestIntersect <$> input
+d3p2 = shortestPath <$> input

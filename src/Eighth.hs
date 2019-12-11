@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Eighth  where
+module Eighth (d8p1, d8p2, printImage) where
 
 type Pixel = Maybe Bool
 type Layer = [[Pixel]]
@@ -30,12 +30,12 @@ pixel _ = error "pixel"
 emptyLayer :: Layer
 emptyLayer = repeat . repeat $ Nothing
 
-firstAnswer :: IO (Maybe Int)
-firstAnswer = fmap (uncurry (*) . (count 1 &&& count 2)) . viaNonEmpty head
-            . sortOn (count 0) <$> rawInput
+d8p1 :: IO (Maybe Int)
+d8p1 = fmap (uncurry (*) . (count 1 &&& count 2)) . viaNonEmpty head
+     . sortOn (count 0) <$> rawInput
 
-secondAnswer :: IO Layer
-secondAnswer = foldr (zippWith mplus) emptyLayer <$> input
+d8p2 :: IO Layer
+d8p2 = foldr (zippWith mplus) emptyLayer <$> input
 
 showPixel :: Pixel -> Text
 showPixel (Just True) = "\ESC[40m \ESC[0m"

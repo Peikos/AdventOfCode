@@ -1,4 +1,4 @@
-module First (firstAnswer, secondAnswer) where
+module First (d1p1, d1p2) where
 
 import Data.Monoid ()
 
@@ -8,11 +8,11 @@ input = map (fmap Sum . readMaybe . toString) . lines <$> readFileText "input1"
 fuel :: Sum Int -> Sum Int
 fuel =  subtract 2 . fmap (flip div 3)
 
-firstAnswer :: IO (Maybe (Sum Int))
-firstAnswer = foldMap (fmap fuel) <$> input
+d1p1 :: IO (Maybe (Sum Int))
+d1p1 = foldMap (fmap fuel) <$> input
 
 fuel' :: Sum Int -> Sum Int
 fuel' = mconcat . takeWhile (> mempty) . iterate fuel . fuel
 
-secondAnswer :: IO (Maybe (Sum Int))
-secondAnswer = foldMap (fmap fuel') <$> input
+d1p2 :: IO (Maybe (Sum Int))
+d1p2 = foldMap (fmap fuel') <$> input

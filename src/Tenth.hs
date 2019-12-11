@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module Tenth  where
+module Tenth (d10p1, d10p2, d10t0, d10t1, d10t2, d10t3, d10t4, d10t5) where
 
 import Data.Ratio ()
 import Data.List (nub, groupBy)
@@ -67,20 +67,20 @@ findOrder = concat . transpose . map (sortOn (snd . snd))
 formatAnswer :: Answer -> Int
 formatAnswer = uncurry (+) . first (*100) . fromA . fst
 
-firstAnswer, secondAnswer :: IO (Maybe Int)
-firstAnswer = fmap snd . findBest <$> input
-secondAnswer = fmap formatAnswer . flip atIdx 199 . findOrder
+d10p1, d10p2 :: IO (Maybe Int)
+d10p1 = fmap snd . findBest <$> input
+d10p2 = fmap formatAnswer . flip atIdx 199 . findOrder
              . label (20,19) <$> input
 
-test0, test1, test2, test3, test4, test5 :: AstMap
-test0 = readMap ".#..#\n.....\n#####\n....#\n...##"
-test1 = readMap $ "......#.#.\n#..#.#....\n..#######.\n.#.#.###..\n.#..#.....\n"
+d10t0, d10t1, d10t2, d10t3, d10t4, d10t5 :: AstMap
+d10t0 = readMap ".#..#\n.....\n#####\n....#\n...##"
+d10t1 = readMap $ "......#.#.\n#..#.#....\n..#######.\n.#.#.###..\n.#..#.....\n"
                <> "..#....#.#\n#..#....#.\n.##.#..###\n##...#..#.\n.#....####"
-test2 = readMap $ "#.#...#.#.\n.###....#.\n.#....#...\n##.#.#.#.#\n....#.#.#.\n"
+d10t2 = readMap $ "#.#...#.#.\n.###....#.\n.#....#...\n##.#.#.#.#\n....#.#.#.\n"
                <> ".##..###.#\n..#...##..\n..##....##\n......#...\n.####.###."
-test3 = readMap $ ".#..#..###\n####.###.#\n....###.#.\n..###.##.#\n##.##.#.#.\n"
+d10t3 = readMap $ ".#..#..###\n####.###.#\n....###.#.\n..###.##.#\n##.##.#.#.\n"
                <> "....###..#\n..#.#..#.#\n#..#.#.###\n.##...##.#\n.....#.#.."
-test4 = readMap $ ".#..##.###...#######\n##.############..##.\n" -- laser 11,13
+d10t4 = readMap $ ".#..##.###...#######\n##.############..##.\n" -- laser 11,13
                <> ".#.######.########.#\n.###.#######.####.#.\n"
                <> "#####.##.#.##.###.##\n..#####..#.#########\n"
                <> "####################\n#.####....###.#.#.##\n"
@@ -90,5 +90,5 @@ test4 = readMap $ ".#..##.###...#######\n##.############..##.\n" -- laser 11,13
                <> "#.##########.#######\n.####.#.###.###.#.##\n"
                <> "....##.##.###..#####\n.#.#.###########.###\n"
                <> "#.#.#.#####.####.###\n###.##.####.##.#..##"
-test5 = readMap $ ".#....#####...#..\n##...##.#####..##\n##...#...#.#####.\n"
+d10t5 = readMap $ ".#....#####...#..\n##...##.#####..##\n##...#...#.#####.\n"
                <> "..#.....X...###..\n..#.#.....#....##" -- laser 8,3

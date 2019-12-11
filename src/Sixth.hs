@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, TemplateHaskell, DeriveFunctor #-}
 
-module Sixth  where
+module Sixth (d6p1, d6p2, d6t0, d6t1) where
 
 import Data.Text (splitOn)
 import Data.List ((\\), nub, groupBy)
@@ -100,9 +100,9 @@ dSum = foldr (<+>) Empty
 
 -- Answers
 
-firstAnswer, secondAnswer :: IO (Maybe Int)
-firstAnswer = firstPL <$> input
-secondAnswer = secondPL <$> input
+d6p1, d6p2 :: IO (Maybe Int)
+d6p1 = firstPL <$> input
+d6p2 = secondPL <$> input
 
 firstPL :: OrbitMap -> Maybe Int
 firstPL om = do c <- centre om
@@ -117,12 +117,8 @@ secondPL om = do c <- centre om
                   >>> cata leastAlgebra $ c
 
 -- Tests
-test0, test1 :: OrbitMap
-test0 = readMap
-  "COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L"
-test1 = readMap
-  "COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L\nK)YOU\nI)SAN"
-
-firstTest, secondTest :: Maybe Int
-firstTest = firstPL test0
-secondTest = secondPL test1
+d6t0, d6t1 :: Maybe Int
+d6t0 = firstPL $ readMap
+       "COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L"
+d6t1 = secondPL $ readMap
+       "COM)B\nB)C\nC)D\nD)E\nE)F\nB)G\nG)H\nD)I\nE)J\nJ)K\nK)L\nK)YOU\nI)SAN"
