@@ -23,7 +23,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Prelude, Computer
                      , First, Second, Third, Fourth, Fifth, Sixth, Seventh
-                     , Eighth, Ninth, Tenth, Eleventh
+                     , Eighth, Ninth, Tenth, Eleventh, Twelfth
 
   build-depends:       base-noprelude ^>= 4.12.0.0
                      , relude

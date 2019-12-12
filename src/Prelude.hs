@@ -4,8 +4,8 @@
 
 module Prelude
        ( module Relude
-       , atIdx, indexOf, singleton, bimapBoth, guarded, fromJust
-       , mmap, mapp, zippWith, zipWith3, chunks, fst3, snd3, thrd3
+       , atIdx, indexOf, singleton, bimapBoth, guarded, fromJust, remove, remFrom
+       , mmap, mapp, zippWith, zipWith3, chunks, fst3, snd3, thrd3, for, s
        , toStream, maybeAny, maybePlus, maybeMin, liftMaybeTuple
        , Algebra, Coalgebra, topDown, bottomUp
        , ifState, bind2
@@ -95,3 +95,15 @@ snd3  :: (a, b, c) -> b
 snd3  (_, b, _) = b
 thrd3 :: (a, b, c) -> c
 thrd3 (_, _, c) = c
+
+remove :: Eq a => a -> [a] -> [a]
+remove e = filter (/= e)
+
+remFrom :: Eq a => [a] -> a -> [a]
+remFrom = flip remove
+
+s :: (a -> b -> c) -> (a -> b) -> a -> c
+s x y z = x z (y z)
+
+for :: [a] -> (a -> b) -> [b]
+for = flip map
