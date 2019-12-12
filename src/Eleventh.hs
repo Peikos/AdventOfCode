@@ -1,6 +1,6 @@
 {-# LANGUAGE OverloadedStrings, ScopedTypeVariables #-}
 
-module Eleventh (d11p1, d11p2) where
+module Eleventh (d11p1, d11p2, printPainting) where
 
 import Control.Comonad.Store ( Store, store, runStore, seek, seeks, experiment
                              , extract)
@@ -30,9 +30,6 @@ paint b st = store newLookup curPos
 view :: Int -> (Int, Int) -> [(Int, Int)]
 view r (x,y) = [(x',y') | y' <- [y-r..y+r], x' <- [x-r..x+r]]
 
-hullNonEmpty :: Int -> Hull -> Int
-hullNonEmpty r = length . filter isJust . experiment (view r) . seek (0,0)
-
 turn :: Int -> Direction -> Direction
 turn 0 = toEnum . flip mod 4 . pred . fromEnum
 turn 1 = toEnum . flip mod 4 . succ . fromEnum
@@ -54,10 +51,10 @@ doLoop (i, h, d) c =
       (cs', [])               -> ((i, h, d), cs')
       _                       -> error "Crashing and burning..."
 
-showResult :: Int -> Hull -> IO ()
-showResult r = putTextLn . unlines . reverse . map mconcat . mapp showPixel
-             . filter interesting . transpose . filter interesting
-             . chunks (2*r+1) . experiment (view r) . seek (0,0)
+printPainting :: Int -> Hull -> IO ()
+printPainting r = putTextLn . unlines . reverse . map mconcat . mapp showPixel
+                . filter interesting . transpose . filter interesting
+                . chunks (2*r+1) . experiment (view r) . seek (0,0)
   where interesting :: [Maybe Bool] -> Bool
         interesting = any isJust
 
@@ -68,5 +65,5 @@ showPixel _ = " "
 d11p1 :: IO Int
 d11p1 = fst3 . fst . doLoop (0, emptyHull, N) <$> input
 
-d11p2 :: IO ()
-d11p2 = showResult 50 =<< (snd3 . fst . doLoop (0, startWhite, N) <$> input)
+d11p2 :: IO Hull
+d11p2 = snd3 . fst . doLoop (0, startWhite, N) <$> input

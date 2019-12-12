@@ -37,7 +37,7 @@ main = do putStrLn "# Day 1"
           _ <- Seventh.d7p1
           putStrLn "# Day 8"
           _ <- Eighth.d8p1
-          _ <- Eighth.d8p2
+          _ <- Eighth.d8p2 -- printImage
           putStrLn "# Day 9"
           _ <- Ninth.d9p1
           _ <- Ninth.d9p2
@@ -46,8 +46,8 @@ main = do putStrLn "# Day 1"
           _ <- Tenth.d10p2
           putStrLn "# Day 11"
           _ <- Eleventh.d11p1
-          _ <- Eleventh.d11p2
+          _ <- Eleventh.d11p2 -- printPainting
           putStrLn "# Day 12"
-          let _ = d12p1
-          print $ d12p2
+          print d12p1
+          print d12p2
           return ()
