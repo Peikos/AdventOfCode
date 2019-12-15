@@ -1,16 +1,15 @@
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings, MultiWayIf #-}
 
 module Computer where
 
-import Control.Comonad.Store ( Store, store, runStore, peek, seek, seeks
-                             , experiment)
 import Control.Monad.RWS.Lazy (RWS, execRWS, tell)
 
 import Fourth (digits)
+import WStore
 
 --Types
 
-type Memory = Store Int (Maybe Int)
+type Memory = WStore Int Int
 type Address = Int
 type Value = Int
 type Digit = Int
@@ -25,25 +24,44 @@ type Instruction = (OpCode, [Argument])
 type Action = Maybe (Computer ())
 type Operation = Instruction -> Action
 type StateResult = (ComputerState, [Maybe Value])
-data ComputerState = CS { cHalted :: Bool
+data RunState = Running | Waiting | Halted deriving (Eq, Show)
+data ComputerState = CS { cRunState :: RunState
                         , cRelBase :: Maybe Int
                         , cInput :: [Value]
                         , cMemory :: Memory
                         }
 
+cHalted  :: ComputerState -> Bool
+cHalted = (== Halted) . cRunState
+
+cPaused  :: ComputerState -> Bool
+cPaused = (== Waiting) . cRunState
+
 -- Programs
 
 toCS :: [Maybe Value] -> ComputerState
-toCS = CS False (Just 0) [] . flip store 0 . (\xs -> join . atIdx xs)
+toCS = CS Running (Just 0) [] . wStore . catMaybes
 
 adjRelBase :: Maybe Int -> ComputerState -> ComputerState
 adjRelBase b cs = cs { cRelBase = maybePlus b $ cRelBase cs }
 
 halt :: ComputerState -> ComputerState
-halt cs = cs { cHalted = True }
+halt cs = cs { cRunState = Halted }
+
+pause :: ComputerState -> ComputerState
+pause cs = cs { cRunState = Waiting }
+
+resume :: ComputerState -> ComputerState
+resume cs = cs { cRunState = Running }
 
 pushInput :: [Int] -> ComputerState -> ComputerState
 pushInput i cs = cs { cInput = cInput cs ++ i }
+
+popInput :: ComputerState -> ComputerState
+popInput cs = cs { cInput = drop 1 (cInput cs) }
+
+ready :: ComputerState -> Bool
+ready cs = (((/= Just 3) $ wExtract $ cMemory cs) || ((>0) $ length $ cInput cs)) && not (cHalted cs)
 
 loadProgram :: [Int] -> ComputerState
 loadProgram = toCS . map Just
@@ -54,17 +72,10 @@ memOp f cs = cs { cMemory = f (cMemory cs) }
 stackOp :: ([Value] -> [Value]) -> ComputerState -> ComputerState
 stackOp f cs = cs { cInput = f (cInput cs) }
 
-write :: Address -> Maybe Value -> Memory -> Memory
-write key val st = store newLookup curPos
-    where (oldLookup, curPos) = runStore st
-          newLookup :: Address -> Maybe Value
-          newLookup key' | key' == key = val
-                         | otherwise   = oldLookup key'
-
 -- Fetching and decoding instructions
 
 fetch :: Memory -> [Maybe Value]
-fetch = experiment enumFrom
+fetch = wExperiment enumFrom
 
 limitTo :: OpCode -> [Argument] -> [Argument]
 limitTo opcode = take numArgs
@@ -91,7 +102,7 @@ decode vs = do digs <- reverse . digits <$> join (viaNonEmpty head vs)
 -- Operation Building Blocks
 
 memRd :: Address -> Computer (Maybe Value)
-memRd adr = gets (peek adr . cMemory)
+memRd adr = gets (wPeek adr . cMemory)
 
 absolute :: Argument -> Computer Address
 absolute (Position p) = return p
@@ -103,26 +114,26 @@ dereference (Immediate arg) = return (Just arg)
 dereference adr = absolute adr >>= memRd
 
 increasePC :: Int -> Computer ()
-increasePC = (+) >>> seeks >>> memOp >>> modify
+increasePC = (+) >>> wSeeks >>> memOp >>> modify
 
 setPC :: Address -> Computer ()
-setPC = seek >>> memOp >>> modify
+setPC = wSeek >>> memOp >>> modify
 
 output :: Maybe Value -> Computer ()
 output = singleton >>> tell
 
 poke :: Address -> Maybe Value -> Computer ()
-poke a = write a >>> memOp >>> modify
+poke a = wWrite a >>> memOp >>> modify
 
 try :: Action -> Computer ()
 try = fromMaybe nop
 
-popInput :: Computer (Maybe Value)
-popInput = do i <- gets (uncons . cInput)
-              case i of
-                Just (h, t) -> modify (\c -> c { cInput = t })
-                            >> return (Just h)
-                Nothing -> return Nothing
+rdInput :: Computer (Maybe Value)
+rdInput = do i <- gets (uncons . cInput)
+             case i of
+               Just (h, _) -> modify (popInput . resume) >> increasePC 2
+                           >> return (Just h)
+               Nothing -> modify pause >> return Nothing
 
 nop :: Computer ()
 nop = return ()
@@ -159,7 +170,7 @@ oAdd _ = Nothing
 oMul (2, [a, b, r]) = alu (*) a b r
 oMul _ = Nothing
 
-oRd (3, [a]) = Just $ bind2 poke (absolute a) popInput >> increasePC 2
+oRd (3, [a]) = Just $ bind2 poke (absolute a) rdInput
 oRd _ = Nothing
 
 oWrt (4, [a]) = Just $ dereference a >>= output >> increasePC 2
@@ -187,13 +198,15 @@ instructions = [oAdd, oMul, oRd, oWrt, oJT, oJF, oLT, oEq, oBs]
 
 computer :: Text -> Computer ()
 computer s = do op <- gets (cMemory >>> fetch >>> decode)
-                case mapMaybe (op >>=) instructions of
-                    (c:_) -> if isJust $ op >>= oWrt
-                               then c
-                               else c >> computer s
-                    [] -> if isJust $ op >>= oHalt
-                            then modify halt
-                            else error $ "Invalid operation: " <> show op
+                r <- gets ready
+                when r $ case mapMaybe (op >>=) instructions of
+                             (c:_) -> if isJust $ op >>= oWrt
+                                        then c
+                                        else c >> computer s
+                             [] -> if isJust $ op >>= oHalt
+                                      then modify halt
+                                      else error $ "Invalid operation: "
+                                                <> show op
 
 nonStop :: Text -> Computer ()
 nonStop s = ifState cHalted

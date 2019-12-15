@@ -21,9 +21,9 @@ source-repository head
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Prelude, Computer
+  exposed-modules:     Prelude, Computer, WStore
                      , First, Second, Third, Fourth, Fifth, Sixth, Seventh
-                     , Eighth, Ninth, Tenth, Eleventh, Twelfth
+                     , Eighth, Ninth, Tenth, Eleventh, Twelfth, Thirteenth
 
   build-depends:       base-noprelude ^>= 4.12.0.0
                      , relude
@@ -32,6 +32,8 @@ library
                      , mtl
                      , deriving-compat
                      , recursion-schemes
+                     , microlens
+                     , microlens-th
 
   ghc-options:         -Wall
                        -Wincomplete-uni-patterns

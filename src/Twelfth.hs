@@ -33,8 +33,8 @@ updateVel :: Moon -> [Moon] -> Moon
 updateVel (Moon p v) = Moon p . (v <>) . mconcat . map (sig p . pos)
 
 updateVels :: [Moon] -> [Moon]
-updateVels ms = map (s updateVel (remFrom ms)) ms
--- updateVels = s for (s updateVel . remFrom)
+updateVels ms = map (subst updateVel (remFrom ms)) ms
+-- updateVels = subst for (subst updateVel . remFrom)
 
 update :: [Moon] -> [Moon]
 update = map updatePos . updateVels
@@ -87,5 +87,5 @@ d12p1 = totalEnergy $ steps 1000 input
 d12p2 = smart input
 d12t10 = totalEnergy $ steps 10 ts0
 d12t11 = totalEnergy $ steps 100 ts1
-d12t20 = s naive update ts0
+d12t20 = subst naive update ts0
 d12t20' = smart ts0

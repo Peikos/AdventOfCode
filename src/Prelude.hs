@@ -5,10 +5,10 @@
 module Prelude
        ( module Relude
        , atIdx, indexOf, singleton, bimapBoth, guarded, fromJust, remove, remFrom
-       , mmap, mapp, zippWith, zipWith3, chunks, fst3, snd3, thrd3, for, s
+       , mmap, mapp, zippWith, zipWith3, chunks, fst3, snd3, thrd3, for, subst
        , toStream, maybeAny, maybePlus, maybeMin, liftMaybeTuple
        , Algebra, Coalgebra, topDown, bottomUp
-       , ifState, bind2
+       , ifState, bind2, (<<), applyAll
        ) where
 
 import Relude
@@ -102,8 +102,14 @@ remove e = filter (/= e)
 remFrom :: Eq a => [a] -> a -> [a]
 remFrom = flip remove
 
-s :: (a -> b -> c) -> (a -> b) -> a -> c
-s x y z = x z (y z)
+subst :: (a -> b -> c) -> (a -> b) -> a -> c
+subst x y z = x z (y z)
 
 for :: [a] -> (a -> b) -> [b]
 for = flip map
+
+(<<) :: Monad m => m b -> m a -> m b
+(<<) = flip (>>)
+
+applyAll :: [a -> a] -> a -> a
+applyAll = foldr (.) id

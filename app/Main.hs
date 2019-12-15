@@ -12,6 +12,7 @@ import qualified Ninth
 import qualified Tenth
 import qualified Eleventh
 import Twelfth
+import Thirteenth
 
 main :: IO ()
 main = do putStrLn "# Day 1"
@@ -48,6 +49,9 @@ main = do putStrLn "# Day 1"
           _ <- Eleventh.d11p1
           _ <- Eleventh.d11p2 -- printPainting
           putStrLn "# Day 12"
-          print d12p1
-          print d12p2
+          let _ = d12p1
+          let _ = d12p2
+          putStrLn "# Day 13"
+          d13p1 >>= print
+          demo >>= print
           return ()

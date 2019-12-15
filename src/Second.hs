@@ -2,9 +2,9 @@
 
 module Second (d2p1, d2p2, d2t0, d2t1, d2t2, d2t3, d2t4) where
 
-import Control.Comonad.Store (peek)
 import Data.Text (splitOn)
 import Relude.Extra.Map (lookup)
+import WStore
 
 import Computer
 
@@ -15,7 +15,7 @@ input = toCS . map (readMaybe . toString) . splitOn ","
     <$> readFileText "input2"
 
 alterMem :: Value -> Value -> ComputerState -> ComputerState
-alterMem a b = memOp (write 1 (Just a) . write 2 (Just b))
+alterMem a b = memOp (wWrite 1 (Just a) . wWrite 2 (Just b))
 
 nounVerbMap :: ComputerState -> Map Result (Value, Value)
 nounVerbMap p = fromList [ (result $ eval [] $ alterMem noun verb p, (noun, verb))
@@ -24,7 +24,7 @@ nounVerbMap p = fromList [ (result $ eval [] $ alterMem noun verb p, (noun, verb
                          ]
 
 result :: (ComputerState, [Maybe Value]) -> Result
-result = peek 0 . cMemory . fst
+result = wPeek 0 . cMemory . fst
 
 d2t0, d2t1, d2t2, d2t3, d2t4 :: ComputerState
 d2t0 = loadProgram [1,9,10,3,2,3,11,0,99,30,40,50]
