@@ -1,0 +1,179 @@
+name:                AoC2020
+version:             0.1.0.0
+license:             BSD3
+author:              "Brian van der Bijl"
+maintainer:          "peikos@peikos.net"
+copyright:           "2020 Brian van der Bijl"
+
+extra-source-files:
+- README.md
+- ChangeLog.md
+
+description:         Please see the README on GitHub at <https://github.com/githubuser/AoC2020#readme>
+
+dependencies:
+- base >= 4.7 && < 5
+- containers
+- transformers
+- base-unicode-symbols
+- data-fix
+- deriving-compat
+- vector
+- repa
+- microlens-platform
+- microlens-th
+
+library:
+  source-dirs: src
+
+executables:
+  AoC2020-day1:
+    main:                Day1.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day1
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day2:
+    main:                Day2.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day2
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day3:
+    main:                Day3.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day3
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day4:
+    main:                Day4.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day4
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day5:
+    main:                Day5.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day5
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day6:
+    main:                Day6.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day6
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day7:
+    main:                Day7.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day7
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day8:
+    main:                Day8.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day8
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day9:
+    main:                Day9.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day9
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day10:
+    main:                Day10.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day10
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day11:
+    main:                Day11.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day11
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day12:
+    main:                Day12.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day12
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day13:
+    main:                Day13.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day13
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day14:
+    main:                Day14.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day14
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
+  AoC2020-day15:
+    main:                Day15.hs
+    source-dirs:         app
+    ghc-options:
+    - -main-is Day15
+    - -threaded
+    - -rtsopts
+    - -with-rtsopts=-N
+    dependencies:
+    - AoC2020
