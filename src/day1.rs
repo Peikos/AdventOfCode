@@ -1,4 +1,5 @@
 use crate::prelude::{run, PuzzleInput};
+use itertools::Itertools;
 
 pub fn read_data(lines: PuzzleInput) -> Vec<u32> {
     lines
@@ -25,9 +26,7 @@ pub fn part1(calories: &Vec<u32>) -> u32 {
 }
 
 pub fn part2(calories: &Vec<u32>) -> u32 {
-    let mut calories = calories.clone();
-    calories.sort();
-    calories.iter().rev().take(3).sum::<u32>()
+    calories.iter().sorted().rev().take(3).sum()
 }
 
 pub fn main() {
