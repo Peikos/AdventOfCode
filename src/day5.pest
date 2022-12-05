@@ -1,0 +1,16 @@
+int = { ASCII_DIGIT+ }
+
+WS = _{ " "+ }
+
+mv = _{"move"}
+from = _{"from"}
+to = _{"to"}
+
+step = { mv ~ WS ~ int ~ WS ~ from ~ WS ~ int ~ WS ~ to ~ WS ~ int }
+
+identifier = { 'A'..'Z' }
+open = _{"["}
+close = _{"]" ~ " "?}
+some_crate = { open ~ identifier ~ close }
+no_crate = _{"   "}
+maybe_crate = { some_crate | no_crate }
