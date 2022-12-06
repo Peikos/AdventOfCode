@@ -26,6 +26,7 @@ impl Data {
     }
 }
 
+#[cfg(not(feature = "timing"))]
 pub fn run<I, R, Pre, F1, F2>(
     day: u8,
     preprocess: Pre,
@@ -39,6 +40,8 @@ where
     F2: Fn(&I) -> R,
     R: Debug + PartialEq + Eq,
 {
+    println!("DAY {:?}", day);
+
     let test = preprocess(Data::Test.load_input(day));
     let data = preprocess(Data::Input.load_input(day));
 
@@ -56,5 +59,50 @@ where
         });
     let duration = start.elapsed();
     println!("{:?}", duration);
+    Ok(())
+}
+
+#[cfg(feature = "timing")]
+pub fn run<I, R, Pre, F1, F2>(
+    day: u8,
+    preprocess: Pre,
+    part1: F1,
+    part2: F2,
+    _outputs: [Option<R>; 4],
+) -> Result<(), String>
+where
+    Pre: Fn(PuzzleInput) -> I,
+    F1: Fn(&I) -> R,
+    F2: Fn(&I) -> R,
+    R: Debug + PartialEq + Eq,
+{
+    let data = preprocess(Data::Input.load_input(day));
+
+    (0..100).for_each(|_| {
+        _ = part1(&data);
+        _ = part2(&data);
+    });
+
+    let start = Instant::now();
+    (0..1000).for_each(|_| {
+        _ = part1(&data);
+    });
+    let duration1 = start.elapsed();
+
+    let start = Instant::now();
+    (0..1000).for_each(|_| {
+        _ = part2(&data);
+    });
+    let duration2 = start.elapsed();
+
+    println!("┌ DAY {: >2} ┐", day);
+    println!("├────────┴─────────────┬──────────────────────┐");
+    println!(
+        "│ part 1: {: >12?} │ part 2: {: >12?} │",
+        duration1 / 1000,
+        duration2 / 1000
+    );
+    println!("└──────────────────────┴──────────────────────┘");
+    println!("");
     Ok(())
 }

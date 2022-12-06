@@ -3,7 +3,6 @@
 use inquire::MultiSelect;
 
 fn run_day(day: &u32) {
-    println!("DAY {:?}", day);
     match day {
         1 => aoc::day1::main(),
         2 => aoc::day2::main(),
