@@ -38,15 +38,23 @@ where
     Pre: Fn(PuzzleInput) -> I,
     F1: Fn(&I) -> R,
     F2: Fn(&I) -> R,
-    R: Debug + PartialEq + Eq,
+    R: Debug + PartialEq + Eq + Clone,
 {
     println!("DAY {:?}", day);
+
+    if cfg!(feature = "test") {
+        let test = preprocess(Data::Test.load_input(day));
+        let results = [part1(&test), part2(&test)];
+        dbg!(&results);
+        std::process::exit(0);
+    }
 
     let test = preprocess(Data::Test.load_input(day));
     let data = preprocess(Data::Input.load_input(day));
 
     let start = Instant::now();
     let results = [part1(&test), part1(&data), part2(&test), part2(&data)];
+
     results
         .into_iter()
         .zip(outputs)
@@ -105,4 +113,76 @@ where
     println!("└──────────────────────┴──────────────────────┘");
     println!("");
     Ok(())
+}
+
+pub struct MapAccum<I, Acc, F> {
+    accu: Acc,
+    iter: I,
+    f: F,
+}
+
+impl<I, Acc, F> MapAccum<I, Acc, F> {
+    pub fn new(iter: I, accu: Acc, f: F) -> Self {
+        Self { iter, accu, f }
+    }
+}
+
+impl<I, B, Acc, F> Iterator for MapAccum<I, Acc, F>
+where
+    I: Iterator,
+    F: FnMut(&Acc, I::Item) -> Option<(Acc, B)>,
+{
+    type Item = B;
+
+    fn next(&mut self) -> Option<B> {
+        let (new_acc, res) = (self.f)(&self.accu, self.iter.next()?)?;
+        self.accu = new_acc;
+        Some(res)
+    }
+}
+
+pub trait ExtraIterators: Iterator {
+    fn map_accum<Acc, F, B>(self, accu: Acc, f: F) -> MapAccum<Self, Acc, F>
+    where
+        Self: Sized,
+        F: FnMut(&Acc, Self::Item) -> Option<(Acc, B)>,
+    {
+        MapAccum::new(self, accu, f)
+    }
+}
+
+impl<T: ?Sized> ExtraIterators for T where T: Iterator {}
+
+pub fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
+    assert!(!v.is_empty());
+    let len = v[0].len();
+    let mut iters: Vec<_> = v.into_iter().map(|n| n.into_iter()).collect();
+    (0..len)
+        .map(|_| {
+            iters
+                .iter_mut()
+                .map(|n| n.next().unwrap())
+                .collect::<Vec<T>>()
+        })
+        .collect()
+}
+
+#[macro_export]
+macro_rules! map2d {
+    ( @closure $p:pat => $tup:expr , $first:expr, $second:expr) => {
+        izip!($first, $second).map(|(a, b)| izip!(a, b).map(|$p| $tup))
+    };
+
+    ( @closure $p:pat => $tup:expr , $first:expr, $second:expr, $third:expr) => {
+        izip!($first, $second, $third).map(|(a, b, c)| izip!(a, b, c).map(|$p| $tup))
+    };
+
+    ( @closure $p:pat => $tup:expr , $first:expr, $second:expr, $third:expr, $fourth:expr ) => {
+        izip!($first, $second, $third, $fourth).map(|(a, b, c, d)| izip!(a, b, c, d).map(|$p| $tup))
+    };
+}
+pub fn cons<A>(vec: Vec<A>, item: A) -> Vec<A> {
+    let mut vec = vec;
+    vec.push(item);
+    vec
 }
