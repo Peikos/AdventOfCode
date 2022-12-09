@@ -12,8 +12,7 @@ pub fn read_data(lines: PuzzleInput) -> Forest {
         .into_iter()
         .map(|line| {
             rows += 1;
-            line.unwrap()
-                .chars()
+            line.chars()
                 .map(|c| c.to_digit(10).unwrap() as i32)
                 .collect()
         })
@@ -121,7 +120,7 @@ pub fn part2(forest: &Forest) -> usize {
         // line of sight.
         |state: &Vec<usize>, current: &i32| {
             let height = *current as usize;
-            let mut trees = state.into_iter().rev();
+            let mut trees = state.iter().rev();
 
             // Cast a ray until a tree is hit.
             let mut score: usize = trees.peeking_take_while(|t| *t < &height).count();

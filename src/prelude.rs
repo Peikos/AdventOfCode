@@ -1,6 +1,6 @@
 use std::fmt::Debug;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Lines};
+use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -9,10 +9,10 @@ pub enum Data {
     Input,
 }
 
-pub type PuzzleInput = Lines<BufReader<File>>;
+pub type PuzzleInput = Vec<String>;
 
 impl Data {
-    pub fn load_input(&self, day: u8) -> Lines<BufReader<File>> {
+    pub fn load_input(&self, day: u8) -> PuzzleInput {
         let mut path: PathBuf = ["data"].iter().collect();
         path.push(day.to_string());
         path.push(match self {
@@ -20,9 +20,12 @@ impl Data {
             Data::Input => "input",
         });
 
-        let file = File::open(&path).expect(&format!("File not found: {:?}!", path));
+        let file = File::open(&path).unwrap_or_else(|_| panic!("File not found: {:?}!", path));
         let buf_reader = BufReader::new(file);
-        buf_reader.lines()
+        buf_reader
+            .lines()
+            .collect::<Result<Vec<_>, _>>()
+            .expect("Failed to load puzzle input.")
     }
 }
 

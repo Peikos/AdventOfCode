@@ -1,6 +1,8 @@
 use crate::prelude::{run, PuzzleInput};
 use itertools::{repeat_n, Itertools, RepeatN};
 
+type RopePath = Vec<Direction>;
+
 /// Direction as parsed from the puzzle input.
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Direction {
@@ -73,23 +75,23 @@ impl Position {
                 y: self.y + (head.y - self.y).signum(),
             };
         }
-        return *self;
+        *self
     }
 }
 
-pub fn read_data(lines: PuzzleInput) -> Vec<Direction> {
+pub fn read_data(lines: PuzzleInput) -> RopePath {
     lines
         .into_iter()
-        .filter_map(|x| x.ok().and_then(|line| Direction::from(line)))
+        .filter_map(Direction::from)
         .flatten()
         .collect()
 }
 
 /// Application of two paramorphisms - one to move the head around according to its previous state
 /// and the next direction, and a second one updating the tail position based on the head.
-pub fn part1(steps: &Vec<Direction>) -> usize {
+pub fn part1(steps: &RopePath) -> usize {
     steps
-        .into_iter()
+        .iter()
         .scan(Position::ORIGIN, |pos, dir| {
             *pos = pos.move_to(*dir);
             Some(*pos)
@@ -104,10 +106,10 @@ pub fn part1(steps: &Vec<Direction>) -> usize {
 
 /// For part 2, we essentially just chain the second paramorphism for each added segment, which
 /// will simulate a trailing element to whatever path the predecessor traces.
-pub fn part2(steps: &Vec<Direction>) -> usize {
+pub fn part2(steps: &RopePath) -> usize {
     itertools::iterate(
         steps
-            .into_iter()
+            .iter()
             .scan(Position::ORIGIN, |pos, dir| {
                 *pos = pos.move_to(*dir);
                 Some(*pos)
@@ -115,7 +117,7 @@ pub fn part2(steps: &Vec<Direction>) -> usize {
             .collect::<Vec<_>>(), // Repeated collect/into_iter to avoid Scan<Scan<..>> type
         |segment_positions| {
             segment_positions
-                .into_iter()
+                .iter()
                 .scan(Position::ORIGIN, |pos, &pred| {
                     *pos = pos.follow(pred);
                     Some(*pos)
@@ -123,7 +125,7 @@ pub fn part2(steps: &Vec<Direction>) -> usize {
                 .collect::<Vec<_>>()
         },
     )
-    .nth(9) // After nine tails, we're done.
+    .nth(9) // After nine tail segments, we're done.
     .expect("Could not calculate tail trajectory.")
     .into_iter()
     .unique()

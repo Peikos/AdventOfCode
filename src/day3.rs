@@ -1,22 +1,18 @@
 use crate::prelude::{run, PuzzleInput};
 use array_tool::vec::{Intersect, Union};
 
-type Intermediate = Vec<(Vec<char>, Vec<char>)>;
+type Backpack = Vec<(Vec<char>, Vec<char>)>;
 
-pub fn read_data(lines: PuzzleInput) -> Intermediate {
+pub fn read_data(lines: PuzzleInput) -> Backpack {
     lines
         .into_iter()
-        .map(|l| {
-            if let Ok(line) = l {
-                let split = line.len() / 2;
-                let (compartment1, compartment2) = line.split_at(split);
-                (
-                    compartment1.chars().collect::<Vec<_>>(),
-                    compartment2.chars().collect::<Vec<_>>(),
-                )
-            } else {
-                panic!()
-            }
+        .map(|line| {
+            let split = line.len() / 2;
+            let (compartment1, compartment2) = line.split_at(split);
+            (
+                compartment1.chars().collect::<Vec<_>>(),
+                compartment2.chars().collect::<Vec<_>>(),
+            )
         })
         .collect::<Vec<_>>()
 }
@@ -29,9 +25,9 @@ fn priority(c: &char) -> u32 {
     }
 }
 
-pub fn part1(doubles: &Intermediate) -> u32 {
+pub fn part1(doubles: &Backpack) -> u32 {
     doubles
-        .into_iter()
+        .iter()
         .map(|(compartment1, compartment2)| compartment1.intersect(compartment2.to_vec()))
         .collect::<Vec<_>>()
         .concat()
@@ -40,9 +36,9 @@ pub fn part1(doubles: &Intermediate) -> u32 {
         .sum()
 }
 
-pub fn part2(doubles: &Intermediate) -> u32 {
+pub fn part2(doubles: &Backpack) -> u32 {
     doubles
-        .into_iter()
+        .iter()
         .map(|(compartment1, compartment2)| compartment1.union(compartment2.to_vec()))
         .collect::<Vec<_>>()
         .chunks(3)

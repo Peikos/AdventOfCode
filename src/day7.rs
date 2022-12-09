@@ -4,6 +4,8 @@ use recursion::recursive::{Collapse, Expand};
 use recursion::recursive_tree::RecursiveTree;
 use recursion::{map_layer::MapLayer, recursive_tree::arena_eval::ArenaIndex};
 
+type Tokenised = Vec<Token>;
+
 /// Base functor for tree F-(co)algebras.
 #[derive(Debug, Clone)]
 pub enum FsLayer<A> {
@@ -30,7 +32,7 @@ struct FileTree(RecursiveTree<FsLayer<ArenaIndex>, ArenaIndex>);
 
 impl FileTree {
     /// Anamorphism to build a tree from a puzzle input.
-    fn build(fs: Vec<Token>) -> FileTree {
+    fn build(fs: Tokenised) -> FileTree {
         FileTree(RecursiveTree::expand_layers(
             Token::Dir("/".to_string()),
             |dir_entry| Self::build_layer(dir_entry, fs.clone()),
@@ -38,21 +40,15 @@ impl FileTree {
     }
 
     // Build a single layer.
-    fn build_layer(entry: Token, ls: Vec<Token>) -> FsLayer<Token> {
+    fn build_layer(entry: Token, ls: Tokenised) -> FsLayer<Token> {
         match entry {
             Token::Dir(name) => {
                 let mut input = ls.into_iter();
                 input.find(|n| *n == Token::Enter(name.clone()));
-                let files: Vec<Token> = input.take_while(|f| f.file()).collect();
-                FsLayer::Dir {
-                    name: name,
-                    files: files,
-                }
+                let files: Tokenised = input.take_while(|f| f.file()).collect();
+                FsLayer::Dir { name, files }
             }
-            Token::File(name, size) => FsLayer::File {
-                name: name,
-                size: size,
-            },
+            Token::File(name, size) => FsLayer::File { name, size },
             s => panic!("{:?}", s),
         }
     }
@@ -85,23 +81,19 @@ pub enum Token {
 
 impl Token {
     fn file(&self) -> bool {
-        match self {
-            Self::File(_, _) => true,
-            Self::Dir(_) => true,
-            _ => false,
-        }
+        matches!(self, Self::File(_, _) | Self::Dir(_))
     }
 
     /// Quick and dirty tokeniser. Keeps track of paths to deal with duplicate directory names.
-    fn try_parse(line: String, path: &mut Vec<String>) -> Option<Token> {
+    fn try_parse(line: &str, path: &mut Vec<String>) -> Option<Token> {
         if line.contains("$ cd") {
-            if line[5..] == *".." {
+            if line[5..].is_empty() {
                 // cd .. is only relevant for path management.
                 path.pop();
                 None
             } else {
                 let dir_name = line[5..].to_string();
-                path.push(dir_name.clone());
+                path.push(dir_name);
                 Some(Token::Enter(path.join(":")))
             }
         } else if line[0..1] == *"$" {
@@ -124,11 +116,12 @@ impl Token {
 pub fn read_data(lines: PuzzleInput) -> Vec<Token> {
     let mut path = Vec::new();
     lines
-        .filter_map(|x| x.ok().and_then(|v| Token::try_parse(v, &mut path)))
+        .iter()
+        .filter_map(|line| Token::try_parse(line, &mut path))
         .collect()
 }
 
-pub fn part1(ls: &Vec<Token>) -> u32 {
+pub fn part1(ls: &Tokenised) -> u32 {
     let fs: FileTree = FileTree::build(ls.to_vec());
 
     let (_, dir_sizes) = fs.dir_sizes();
@@ -136,7 +129,7 @@ pub fn part1(ls: &Vec<Token>) -> u32 {
     dir_sizes.into_iter().filter(|size| size < &100000).sum()
 }
 
-pub fn part2(ls: &Vec<Token>) -> u32 {
+pub fn part2(ls: &Tokenised) -> u32 {
     let fs: FileTree = FileTree::build(ls.to_vec());
 
     let (total, dir_sizes) = fs.dir_sizes();

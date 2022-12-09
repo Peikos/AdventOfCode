@@ -1,14 +1,16 @@
 use crate::prelude::{run, PuzzleInput};
 
-pub fn read_data(_lines: PuzzleInput) -> () {
+type Intermediate = ();
+
+pub fn read_data(_lines: PuzzleInput) -> Intermediate {
     todo!()
 }
 
-pub fn part1(_: &()) -> u32 {
+pub fn part1(_: &Intermediate) -> u32 {
     todo!()
 }
 
-pub fn part2(_: &()) -> u32 {
+pub fn part2(_: &Intermediate) -> u32 {
     todo!()
 }
 

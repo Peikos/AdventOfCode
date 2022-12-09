@@ -1,5 +1,7 @@
 use crate::prelude::{run, PuzzleInput};
 
+type Round = Vec<(Move, Move)>;
+
 #[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Move {
     Rock,
@@ -25,6 +27,7 @@ impl Move {
 
     /// Scoring can be expressed as a 3×3 matrix
     pub fn score(&self, them: &Move) -> u32 {
+        #[allow(clippy::identity_op)]
         match (them, self) {
             (Move::Paper, Move::X) => 1 + 0,
             (Move::Scissors, Move::Y) => 2 + 0,
@@ -59,24 +62,21 @@ impl Move {
     }
 }
 
-pub fn read_data(lines: PuzzleInput) -> Vec<(Move, Move)> {
+pub fn read_data(lines: PuzzleInput) -> Round {
     lines
+        .iter()
         .map(|l| {
-            if let Ok(ll) = l {
-                let (them, us) = ll.split_at(1);
-                (Move::read(them), Move::read(us))
-            } else {
-                panic!()
-            }
+            let (them, us) = l.split_at(1);
+            (Move::read(them), Move::read(us))
         })
         .collect()
 }
 
-pub fn part1(rounds: &Vec<(Move, Move)>) -> u32 {
+pub fn part1(rounds: &Round) -> u32 {
     rounds.iter().map(|(them, us)| us.score(them)).sum()
 }
 
-pub fn part2(rounds: &Vec<(Move, Move)>) -> u32 {
+pub fn part2(rounds: &Round) -> u32 {
     rounds.iter().map(|(them, us)| us.score2(them)).sum()
 }
 

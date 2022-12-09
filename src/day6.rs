@@ -6,17 +6,7 @@ pub struct DataStreams(Vec<DataStream>); // Process multiple examples as one in 
 
 /// Not much to do, just prepare by splitting in characters.
 pub fn read_data(lines: PuzzleInput) -> DataStreams {
-    DataStreams(
-        lines
-            .map(|l| {
-                if let Ok(ll) = l {
-                    ll.chars().collect()
-                } else {
-                    panic!()
-                }
-            })
-            .collect(),
-    )
+    DataStreams(lines.iter().map(|l| l.chars().collect()).collect())
 }
 
 impl DataStreams {
@@ -28,7 +18,7 @@ impl DataStreams {
             .filter_map(|(i, w)| {
                 let mut uniq = HashSet::new();
                 // Sequence contains no repeated characters if each can be added to the same HashSet.
-                if w.into_iter().all(move |x| uniq.insert(x)) {
+                if w.iter().all(move |x| uniq.insert(x)) {
                     Some(i) // Return starting index.
                 } else {
                     None
