@@ -189,3 +189,77 @@ pub fn cons<A>(vec: Vec<A>, item: A) -> Vec<A> {
     vec.push(item);
     vec
 }
+
+pub fn print_display(display: Vec<Vec<bool>>) {
+    display.into_iter().for_each(|row| {
+        println!(
+            "{}",
+            row.into_iter()
+                .map(|c| if c { '#' } else { '.' })
+                .collect::<String>()
+        )
+    });
+    println!();
+}
+
+pub fn lookup_char(hash: usize) -> char {
+    match hash {
+        311928102 => 'A',
+        244620583 => 'B',
+        210797862 => 'C',
+        244622631 => 'D',
+        504413231 => 'E',
+        34651183 => 'F',
+        211191078 => 'G',
+        311737641 => 'H',
+        34636833 => 'I',
+        211034376 => 'J',
+        307334313 => 'K',
+        504398881 => 'L',
+        311731689 => 'M',
+        311735657 => 'N',
+        211068198 => 'O',
+        34841895 => 'P',
+        483697958 => 'Q',
+        307338535 => 'R',
+        210897190 => 'S',
+        69273679 => 'T',
+        211068201 => 'U',
+        106210601 => 'V',
+        318022953 => 'W',
+        311630121 => 'X',
+        35793193 => 'Y',
+        504434959 => 'Z',
+        _ => '?',
+    }
+}
+
+pub fn read_display(display: Vec<Vec<bool>>) -> String {
+    crate::prelude::transpose(
+        display
+            .into_iter()
+            .map(|row| {
+                row.chunks(5)
+                    .into_iter()
+                    .map(|rowchunk| {
+                        rowchunk
+                            .iter()
+                            .enumerate()
+                            .map(|(pos, pix)| if *pix { 2_usize.pow(pos as u32) } else { 0 })
+                            .sum::<usize>()
+                    })
+                    .collect()
+            })
+            .collect(),
+    )
+    .into_iter()
+    .map(|digit| {
+        digit
+            .into_iter()
+            .enumerate()
+            .map(|(pos, sub)| sub * 32_usize.pow(pos as u32))
+            .sum::<usize>()
+    })
+    .map(lookup_char)
+    .collect()
+}
