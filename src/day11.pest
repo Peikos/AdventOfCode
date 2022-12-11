@@ -1,0 +1,31 @@
+int = { ASCII_DIGIT+ }
+
+WHITESPACE = _{ " " }
+
+monkey_str = _{"Monkey"}
+colon = _{ ":" }
+items_str = _{"Starting items:"}
+operation_str = _{"Operation:" ~ "new ="}
+test_str = _{"Test:" ~ "divisible by"}
+throw_to = _{"throw to monkey"}
+on_true_str = _{"If true:" ~ throw_to}
+on_false_str = _{"If false:" ~ throw_to}
+
+num = _{ int }
+
+item = { int }
+comma = _{ "," }
+items = { ( item ~ comma? )* }
+
+old = { "old" }
+new = { "new" }
+operand = { old | new | int }
+operator = { "*" | "+" }
+operation = { operand ~ operator ~ operand }
+
+test = { int }
+
+on_true = { int }
+on_false = { int }
+
+monkey = { monkey_str ~ num ~ colon ~ NEWLINE ~ items_str ~ items ~ NEWLINE ~ operation_str ~ operation ~ NEWLINE ~ test_str ~ test ~ NEWLINE ~ on_true_str ~ on_true ~ NEWLINE ~ on_false_str ~ on_false  }
