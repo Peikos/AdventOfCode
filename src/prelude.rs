@@ -1,6 +1,7 @@
 use std::fmt::Debug;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::iter::Iterator;
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -145,6 +146,30 @@ where
 }
 
 pub trait ExtraIterators: Iterator {
+    fn take_within(&mut self, delim: &str) -> String
+    where
+        Self: Sized + Iterator<Item = char>,
+    {
+        let mut nesting = 0;
+
+        // Match opening delimiter, or panic.
+        assert_eq!(
+            self.next(),
+            Some(delim.chars().next().expect("Missing delimiters!")),
+            "Expected opening delimiter did not match input."
+        );
+
+        self.by_ref()
+            .take_while(|&c| {
+                nesting += delim
+                    .chars()
+                    .position(|delim| c == delim)
+                    .map_or(0, |idx| [1, -1][idx]);
+                nesting >= 0
+            })
+            .collect::<String>()
+    }
+
     fn map_accum<Acc, F, B>(self, accu: Acc, f: F) -> MapAccum<Self, Acc, F>
     where
         Self: Sized,
