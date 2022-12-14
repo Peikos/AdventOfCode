@@ -1,4 +1,4 @@
-use crate::prelude::{run, PuzzleInput};
+use crate::prelude::{run, Ascii2d, Coord, PrintAscii2d, PuzzleInput};
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::str::FromStr;
@@ -9,6 +9,17 @@ pub enum Cell {
     Rock,
     Sand,
 }
+
+impl Ascii2d for Cell {
+    fn to_char(cell: Option<&Cell>) -> char {
+        match cell {
+            Some(Cell::Rock) => '#',
+            Some(Cell::Sand) => 'o',
+            None => ' ',
+        }
+    }
+}
+
 type Mapping = HashMap<Coord, Cell>;
 
 /// Map contains cells of rock/sand, as well as boundary information.
@@ -23,7 +34,7 @@ pub struct Map {
 
 impl Map {
     /// Origin of all the sand.
-    const SOURCE: Coord = Coord { x: 500, y: 0 };
+    const SOURCE: Coord = Coord::new(500, 0);
 
     /// Read input file to produce initial map state.
     pub fn from(lines: Vec<String>) -> Map {
@@ -40,41 +51,21 @@ impl Map {
                 .map(|coord: &str| {
                     // Extract coordinates and keep track of boundaries.
                     let mut xy = coord.split(',');
-                    let x = i32::from_str(xy.next().unwrap()).unwrap();
-                    let y = i32::from_str(xy.next().unwrap()).unwrap();
+                    let x = i32::from_str(xy.next().expect("No x coordinate!"))
+                        .expect("Cannot read x coordinate!");
+                    let y = i32::from_str(xy.next().expect("No y coordinate!"))
+                        .expect("Cannot read y coordinate!");
 
-                    if x < map.left {
-                        map.left = x;
-                    }
-                    if x > map.right {
-                        map.right = x;
-                    }
-                    if y < map.top {
-                        map.top = y;
-                    }
-                    if y > map.bottom {
-                        map.bottom = y;
-                    }
-                    Coord { x, y }
+                    map.left = map.left.min(x);
+                    map.right = map.right.max(x);
+                    map.top = map.top.min(y);
+                    map.bottom = map.bottom.max(y);
+                    Coord::new(x, y)
                 })
                 .collect::<Vec<_>>() // Collect intermediary results to free mutable borrows.
                 .iter()
                 .tuple_windows() // Sliding window over each pair of corner points.
-                .for_each(|(a, b)| {
-                    if a.x == b.x {
-                        // Rows.
-                        (a.y.min(b.y)..=a.y.max(b.y)).for_each(|y| {
-                            map.spawn_rock(Coord { x: a.x, y });
-                        });
-                    } else if a.y == b.y {
-                        // Columns.
-                        (a.x.min(b.x)..=a.x.max(b.x)).for_each(|x| {
-                            map.spawn_rock(Coord { x, y: a.y });
-                        });
-                    } else {
-                        panic!("Unexpected formation: {:?} -> {:?}", a, b)
-                    }
-                });
+                .for_each(|(a, b)| a.span(b).for_each(|c| map.spawn_rock(c)));
         });
         map
     }
@@ -84,20 +75,9 @@ impl Map {
         self.cells.get(&c).is_none()
     }
 
-    /// Printing enabled using a feature, otherwise treat as no-op.
     pub fn print(&self) {
-        #[cfg(feature = "print")]
-        {
-            (0..=self.bottom).for_each(|y| {
-                (self.left..=self.right).for_each(|x| match &self.cells.get(&Coord { x, y }) {
-                    Some(Cell::Rock) => print!("#"),
-                    Some(Cell::Sand) => print!("o"),
-                    None => print!(" "),
-                });
-                println!();
-            });
-            println!();
-        }
+        self.cells
+            .print_map(self.top, self.bottom, self.left, self.right);
     }
 
     /// Spawn a unit of sand at the source, and see where it lands. Returns true if sand added,
@@ -107,7 +87,7 @@ impl Map {
         let mut previous = None;
 
         while previous != Some(location) {
-            if location.y >= self.bottom || !self.empty(Map::SOURCE) {
+            if location.y() >= self.bottom || !self.empty(Map::SOURCE) {
                 return false;
             }
 
@@ -140,39 +120,14 @@ impl Map {
         sand
     }
 
+    /// Insert rock in given location.
     pub fn spawn_rock(&mut self, c: Coord) {
         self.cells.insert(c, Cell::Rock);
     }
 
+    /// Build a floor at bottom level, stretching from left to right.
     pub fn build_floor(&mut self) {
-        (self.left..=self.right).for_each(|x| self.spawn_rock(Coord { x, y: self.bottom }));
-    }
-}
-
-/// 2D cartesian coordinate, origin at top-left.
-#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
-pub struct Coord {
-    x: i32,
-    y: i32,
-}
-
-impl Coord {
-    fn translate(self, delta_x: i32, delta_y: i32) -> Coord {
-        Coord {
-            x: self.x + delta_x,
-            y: self.y + delta_y,
-        }
-    }
-    pub fn fall(self) -> Coord {
-        self.translate(0, 1)
-    }
-
-    pub fn fall_left(self) -> Coord {
-        self.translate(-1, 1)
-    }
-
-    pub fn fall_right(self) -> Coord {
-        self.translate(1, 1)
+        Coord::hline(self.bottom, self.left, self.right).for_each(|c| self.spawn_rock(c));
     }
 }
 

@@ -1,7 +1,10 @@
+use itertools::Itertools;
+use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::iter::Iterator;
+use std::ops::Add;
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -195,20 +198,6 @@ pub fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
         .collect()
 }
 
-#[macro_export]
-macro_rules! map2d {
-    ( @closure $p:pat => $tup:expr , $first:expr, $second:expr) => {
-        izip!($first, $second).map(|(a, b)| izip!(a, b).map(|$p| $tup))
-    };
-
-    ( @closure $p:pat => $tup:expr , $first:expr, $second:expr, $third:expr) => {
-        izip!($first, $second, $third).map(|(a, b, c)| izip!(a, b, c).map(|$p| $tup))
-    };
-
-    ( @closure $p:pat => $tup:expr , $first:expr, $second:expr, $third:expr, $fourth:expr ) => {
-        izip!($first, $second, $third, $fourth).map(|(a, b, c, d)| izip!(a, b, c, d).map(|$p| $tup))
-    };
-}
 pub fn cons<A>(vec: Vec<A>, item: A) -> Vec<A> {
     let mut vec = vec;
     vec.push(item);
@@ -287,4 +276,110 @@ pub fn read_display(display: Vec<Vec<bool>>) -> String {
     })
     .map(lookup_char)
     .collect()
+}
+
+/// 2D cartesian coordinate, origin at top-left.
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+pub struct Coord {
+    pub x: i32,
+    pub y: i32,
+}
+
+impl Coord {
+    pub const fn new(x: i32, y: i32) -> Coord {
+        Coord { x, y }
+    }
+
+    pub fn x(self) -> i32 {
+        self.x
+    }
+
+    pub fn y(self) -> i32 {
+        self.y
+    }
+
+    pub fn vline(x: i32, start: i32, end: i32) -> impl Iterator<Item = Coord> {
+        (start..=end).map(move |y| Coord { x, y })
+    }
+
+    pub fn hline(y: i32, start: i32, end: i32) -> impl Iterator<Item = Coord> {
+        (start..=end).map(move |x| Coord { x, y })
+    }
+
+    pub fn span(self, rhs: &Coord) -> impl Iterator<Item = Coord> {
+        (self.x.min(rhs.x)..=self.x.max(rhs.x))
+            .cartesian_product(self.y.min(rhs.y)..=self.y.max(rhs.y))
+            .map(move |(x, y)| Coord { x, y })
+    }
+
+    fn translate(self, delta_x: i32, delta_y: i32) -> Coord {
+        Coord {
+            x: self.x + delta_x,
+            y: self.y + delta_y,
+        }
+    }
+
+    pub fn fall(self) -> Coord {
+        self.translate(0, 1)
+    }
+
+    pub fn fall_left(self) -> Coord {
+        self.translate(-1, 1)
+    }
+
+    pub fn fall_right(self) -> Coord {
+        self.translate(1, 1)
+    }
+}
+
+impl Add for Coord {
+    type Output = Coord;
+    fn add(self, rhs: Coord) -> Coord {
+        Coord {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+pub trait Ascii2d {
+    fn to_char(i: Option<&Self>) -> char;
+}
+
+pub trait PrintAscii2d {
+    fn print_map(&self, top: i32, bottom: i32, left: i32, right: i32);
+}
+
+impl<I: Ascii2d> PrintAscii2d for HashMap<Coord, I> {
+    /// Printing enabled using a feature, otherwise treat as no-op.
+
+    #[cfg(not(feature = "print"))]
+    fn print_map(&self, _: i32, _: i32, _: i32, _: i32) {}
+
+    #[cfg(feature = "print")]
+    fn print_map(&self, top: i32, bottom: i32, left: i32, right: i32) {
+        {
+            (top..=bottom).for_each(|y| {
+                (left..=right)
+                    .for_each(|x| print!("{}", Ascii2d::to_char(self.get(&Coord::new(x, y)))));
+                println!();
+            });
+            println!();
+        }
+    }
+}
+
+#[macro_export]
+macro_rules! map2d {
+    ( @closure $p:pat => $tup:expr , $first:expr, $second:expr) => {
+        izip!($first, $second).map(|(a, b)| izip!(a, b).map(|$p| $tup))
+    };
+
+    ( @closure $p:pat => $tup:expr , $first:expr, $second:expr, $third:expr) => {
+        izip!($first, $second, $third).map(|(a, b, c)| izip!(a, b, c).map(|$p| $tup))
+    };
+
+    ( @closure $p:pat => $tup:expr , $first:expr, $second:expr, $third:expr, $fourth:expr ) => {
+        izip!($first, $second, $third, $fourth).map(|(a, b, c, d)| izip!(a, b, c, d).map(|$p| $tup))
+    };
 }
