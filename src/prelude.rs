@@ -1,10 +1,11 @@
 use itertools::Itertools;
+use std::cmp::{Ordering, Ordering::*};
 use std::collections::HashMap;
 use std::fmt::Debug;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::iter::Iterator;
-use std::ops::Add;
+use std::ops::{Add, Sub};
 use std::path::PathBuf;
 use std::time::Instant;
 
@@ -184,6 +185,20 @@ pub trait ExtraIterators: Iterator {
 
 impl<T: ?Sized> ExtraIterators for T where T: Iterator {}
 
+pub fn fst<A, B, C, F>(func: F, (a, b): (A, B)) -> (C, B)
+where
+    F: Fn(A) -> C,
+{
+    (func(a), b)
+}
+
+pub fn snd<A, B, C, F>(func: F, (a, b): (A, B)) -> (A, C)
+where
+    F: Fn(B) -> C,
+{
+    (a, func(b))
+}
+
 pub fn transpose<T>(v: Vec<Vec<T>>) -> Vec<Vec<T>> {
     assert!(!v.is_empty());
     let len = v[0].len();
@@ -330,6 +345,14 @@ impl Coord {
     pub fn fall_right(self) -> Coord {
         self.translate(1, 1)
     }
+
+    pub fn chebyshev(&self, tar: Coord) -> i32 {
+        Chebyshev.distance(*self, tar)
+    }
+
+    pub fn manhattan(&self, tar: Coord) -> i32 {
+        Manhattan.distance(*self, tar)
+    }
 }
 
 impl Add for Coord {
@@ -338,6 +361,148 @@ impl Add for Coord {
         Coord {
             x: self.x + rhs.x,
             y: self.y + rhs.y,
+        }
+    }
+}
+
+impl Sub for Coord {
+    type Output = Coord;
+    fn sub(self, rhs: Coord) -> Coord {
+        Coord {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
+impl Sub for &Coord {
+    type Output = Coord;
+    fn sub(self, rhs: &Coord) -> Coord {
+        Coord {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct Manhattan;
+
+#[derive(Copy, Clone, Debug, PartialEq, Eq)]
+pub struct Chebyshev;
+
+pub trait DiscreteMetric: Copy + Clone + PartialEq {
+    fn distance(self, src: Coord, tar: Coord) -> i32;
+}
+
+impl DiscreteMetric for Manhattan {
+    fn distance(self, src: Coord, tar: Coord) -> i32 {
+        let d = src - tar;
+        d.x.abs() + d.y.abs()
+    }
+}
+
+impl DiscreteMetric for Chebyshev {
+    fn distance(self, src: Coord, tar: Coord) -> i32 {
+        let d = src - tar;
+        d.x.abs().max(d.y.abs())
+    }
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Circle<M> {
+    centre: Coord,
+    radius: i32,
+    metric: M,
+}
+
+impl<M: DiscreteMetric> Circle<M> {
+    pub fn new(centre: Coord, radius: i32, metric: M) -> Circle<M> {
+        Circle {
+            centre,
+            radius,
+            metric,
+        }
+    }
+
+    pub fn radius(&self) -> i32 {
+        self.radius
+    }
+
+    pub fn contains(&self, point: &Coord) -> bool {
+        self.metric.distance(self.centre, point.to_owned()) <= self.radius
+    }
+
+    pub fn grow(&self) -> Circle<M> {
+        Circle {
+            radius: self.radius + 1,
+            ..self.clone()
+        }
+    }
+
+    pub fn westmost(&self) -> Coord {
+        self.centre.translate(-self.radius, 0)
+    }
+
+    pub fn eastmost(&self) -> Coord {
+        self.centre.translate(self.radius, 0)
+    }
+
+    pub fn northmost(&self) -> Coord {
+        self.centre.translate(0, -self.radius)
+    }
+
+    pub fn southmost(&self) -> Coord {
+        self.centre.translate(0, self.radius)
+    }
+
+    pub fn covers_x(&self, x: i32) -> bool {
+        (self.centre.x - x).abs() <= self.radius
+    }
+
+    pub fn covers_y(&self, y: i32) -> bool {
+        (self.centre.y - y).abs() <= self.radius
+    }
+}
+
+impl Circle<Chebyshev> {
+    pub fn chebyshev(centre: Coord, radius: i32) -> Circle<Chebyshev> {
+        Circle::new(centre, radius, Chebyshev)
+    }
+}
+
+impl Circle<Manhattan> {
+    pub fn manhattan(centre: Coord, radius: i32) -> Circle<Manhattan> {
+        Circle::new(centre, radius, Manhattan)
+    }
+
+    pub fn boundary(&self) -> Vec<Coord> {
+        (0..self.radius)
+            .map(|s| {
+                [
+                    self.centre.translate(s, self.radius - s),
+                    self.centre.translate(-s, self.radius - s),
+                    self.centre.translate(s, s - self.radius),
+                    self.centre.translate(-s, s - self.radius),
+                ]
+            })
+            .collect::<Vec<_>>()
+            .concat()
+    }
+}
+
+impl<M: DiscreteMetric> PartialOrd for Circle<M> {
+    fn partial_cmp(&self, rhs: &Circle<M>) -> Option<Ordering> {
+        if self.centre == rhs.centre && self.radius == rhs.radius {
+            Some(Equal)
+        } else if self.clone().contains(&rhs.westmost())
+            && self.clone().contains(&rhs.eastmost())
+            && self.clone().contains(&rhs.northmost())
+            && self.clone().contains(&rhs.southmost())
+        {
+            Some(Greater)
+        } else {
+            None
         }
     }
 }
