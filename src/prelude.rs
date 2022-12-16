@@ -301,6 +301,8 @@ pub struct Coord {
 }
 
 impl Coord {
+    pub const ORIGIN: Coord = Coord::new(0, 0);
+
     pub const fn new(x: i32, y: i32) -> Coord {
         Coord { x, y }
     }
@@ -334,16 +336,36 @@ impl Coord {
         }
     }
 
-    pub fn fall(self) -> Coord {
+    pub fn up(self) -> Coord {
+        self.translate(0, -1)
+    }
+
+    pub fn down(self) -> Coord {
         self.translate(0, 1)
     }
 
-    pub fn fall_left(self) -> Coord {
+    pub fn left(self) -> Coord {
+        self.translate(-1, 0)
+    }
+
+    pub fn right(self) -> Coord {
+        self.translate(1, 0)
+    }
+
+    pub fn down_left(self) -> Coord {
         self.translate(-1, 1)
     }
 
-    pub fn fall_right(self) -> Coord {
+    pub fn down_right(self) -> Coord {
         self.translate(1, 1)
+    }
+
+    pub fn up_left(self) -> Coord {
+        self.translate(1, -1)
+    }
+
+    pub fn up_right(self) -> Coord {
+        self.translate(-1, -1)
     }
 
     pub fn chebyshev(&self, tar: Coord) -> i32 {
@@ -365,7 +387,26 @@ impl Add for Coord {
     }
 }
 
-impl Sub for Coord {
+impl Add<&Coord> for Coord {
+    type Output = Coord;
+    fn add(self, rhs: &Coord) -> Coord {
+        Coord {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl std::ops::AddAssign for Coord {
+    fn add_assign(&mut self, rhs: Self) {
+        *self = Coord {
+            x: self.x + rhs.x,
+            y: self.y + rhs.y,
+        }
+    }
+}
+
+impl Sub<Coord> for Coord {
     type Output = Coord;
     fn sub(self, rhs: Coord) -> Coord {
         Coord {
@@ -375,7 +416,7 @@ impl Sub for Coord {
     }
 }
 
-impl Sub for &Coord {
+impl Sub<&Coord> for Coord {
     type Output = Coord;
     fn sub(self, rhs: &Coord) -> Coord {
         Coord {
@@ -385,9 +426,20 @@ impl Sub for &Coord {
     }
 }
 
+impl std::ops::SubAssign for Coord {
+    fn sub_assign(&mut self, rhs: Self) {
+        *self = Coord {
+            x: self.x - rhs.x,
+            y: self.y - rhs.y,
+        }
+    }
+}
+
+/// L_1 metric (as a taxicab).
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Manhattan;
 
+/// L_∞ metric (as the king moves in chess).
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Chebyshev;
 

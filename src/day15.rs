@@ -13,7 +13,7 @@ pub fn read_data(lines: PuzzleInput) -> SensorData {
                     .filter(|c| *c == '-' || c.is_ascii_digit())
                     .collect::<String>()
                     .parse()
-                    .unwrap()
+                    .expect("No parse for coordinate part.")
             });
 
             let c = Coord::new(parts.next()?, parts.next()?);
@@ -39,14 +39,14 @@ pub fn part1((sensor_ranges, beacons): &SensorData) -> u128 {
         .filter(|c| c.covers_y(y))
         .map(|c| c.westmost().x())
         .min()
-        .unwrap();
+        .expect("No eastmost sensor range.");
 
     let east = sensor_ranges
         .iter()
         .filter(|c| c.covers_y(y))
         .map(|c| c.eastmost().x())
         .max()
-        .unwrap();
+        .expect("No westmost sensor range.");
 
     let start = Instant::now();
 

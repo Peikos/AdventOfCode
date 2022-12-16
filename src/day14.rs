@@ -94,16 +94,10 @@ impl Map {
             let _ = previous.insert(location);
 
             // Try fall directions in order.
-            location = if self.empty(location.fall()) {
-                location.fall()
-            } else if self.empty(location.fall_left()) {
-                location.fall_left()
-            } else if self.empty(location.fall_right()) {
-                location.fall_right()
-            } else {
-                // Stay put.
-                location
-            };
+            location = [location.down(), location.down_left(), location.down_right()]
+                .into_iter()
+                .find(|&l| self.empty(l))
+                .unwrap_or(location);
         }
 
         self.cells.insert(location, Cell::Sand);

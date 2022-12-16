@@ -1,4 +1,4 @@
-use crate::prelude::{run, PuzzleInput};
+use crate::prelude::{run, Coord, PuzzleInput};
 use itertools::{repeat_n, Itertools, RepeatN};
 
 type RopePath = Vec<Direction>;
@@ -26,56 +26,22 @@ impl Direction {
     }
 }
 
-/// Position in an x/y plane as a monoid, maybe move to prelude if this comes back more often.
-#[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy)]
-pub struct Position {
-    x: i32,
-    y: i32,
-}
-
-impl std::ops::Add<Position> for &Position {
-    type Output = Position;
-    fn add(self, rhs: Position) -> Position {
-        Position {
-            x: self.x + rhs.x,
-            y: self.y + rhs.y,
-        }
-    }
-}
-
-impl Position {
-    /// Zero element for positions at the origin.
-    const ORIGIN: Position = Position { x: 0, y: 0 };
-
-    /// Conflate position and translation vectors.
-    fn from_direction(dir: Direction) -> Position {
+/// Conflate position and translation vectors.
+impl From<&Direction> for Coord {
+    fn from(dir: &Direction) -> Coord {
         match dir {
-            Direction::Up => Position { x: 0, y: 1 },
-            Direction::Down => Position { x: 0, y: -1 },
-            Direction::Left => Position { x: -1, y: 0 },
-            Direction::Right => Position { x: 1, y: 0 },
+            Direction::Up => Coord::new(0, 1),
+            Direction::Down => Coord::new(0, -1),
+            Direction::Left => Coord::new(-1, 0),
+            Direction::Right => Coord::new(1, 0),
         }
     }
+}
 
-    /// Add positition and translation representation.
-    fn move_to(&self, dir: Direction) -> Position {
-        self + Position::from_direction(dir)
-    }
-
-    /// L_∞ metric (as the king moves in chess).
-    fn chebyshev_distance(&self, other: &Position) -> i32 {
-        (self.x - other.x).abs().max((self.y - other.y).abs())
-    }
-
-    /// Calculate next tail position based on current and head positions.
-    fn follow(&self, head: Position) -> Position {
-        if self.chebyshev_distance(&head) > 1 {
-            return Position {
-                x: self.x + (head.x - self.x).signum(),
-                y: self.y + (head.y - self.y).signum(),
-            };
-        }
-        *self
+/// Add positition and translation representation.
+impl std::ops::AddAssign<&Direction> for Coord {
+    fn add_assign(&mut self, rhs: &Direction) {
+        *self += Coord::from(rhs)
     }
 }
 
@@ -87,17 +53,26 @@ pub fn read_data(lines: PuzzleInput) -> RopePath {
         .collect()
 }
 
+/// Calculate next tail position based on current and head positions.
+fn follow(head: Coord, tail: &Coord) -> Coord {
+    if tail.chebyshev(head) > 1 {
+        let diff = head - tail;
+        return Coord::new(tail.x() + diff.x().signum(), tail.y() + diff.y().signum());
+    }
+    *tail
+}
+
 /// Application of two paramorphisms - one to move the head around according to its previous state
 /// and the next direction, and a second one updating the tail position based on the head.
 pub fn part1(steps: &RopePath) -> usize {
     steps
         .iter()
-        .scan(Position::ORIGIN, |pos, dir| {
-            *pos = pos.move_to(*dir);
+        .scan(Coord::ORIGIN, |pos, dir| {
+            *pos += dir;
             Some(*pos)
         })
-        .scan(Position::ORIGIN, |pos, head| {
-            *pos = pos.follow(head);
+        .scan(Coord::ORIGIN, |pos, head| {
+            *pos = follow(head, pos);
             Some(*pos)
         })
         .unique()
@@ -110,16 +85,16 @@ pub fn part2(steps: &RopePath) -> usize {
     itertools::iterate(
         steps
             .iter()
-            .scan(Position::ORIGIN, |pos, dir| {
-                *pos = pos.move_to(*dir);
+            .scan(Coord::ORIGIN, |pos, dir| {
+                *pos += dir;
                 Some(*pos)
             })
             .collect::<Vec<_>>(), // Repeated collect/into_iter to avoid Scan<Scan<..>> type
         |segment_positions| {
             segment_positions
                 .iter()
-                .scan(Position::ORIGIN, |pos, &pred| {
-                    *pos = pos.follow(pred);
+                .scan(Coord::ORIGIN, |pos, &pred| {
+                    *pos = follow(pred, pos);
                     Some(*pos)
                 })
                 .collect::<Vec<_>>()
