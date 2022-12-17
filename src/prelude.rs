@@ -181,6 +181,15 @@ pub trait ExtraIterators: Iterator {
     {
         MapAccum::new(self, accu, f)
     }
+
+    fn singular(&mut self) -> Option<Self::Item>
+    where
+        Self::Item: Eq,
+    {
+        let guess = self.next();
+
+        self.fold(guess, |u, t| if u == Some(t) { u } else { None })
+    }
 }
 
 impl<T: ?Sized> ExtraIterators for T where T: Iterator {}
@@ -311,8 +320,20 @@ impl Coord {
         self.x
     }
 
+    pub fn x_as_usize(self) -> usize {
+        self.x
+            .try_into()
+            .unwrap_or_else(|_| panic!("Error converting {:?} to unsigned", self))
+    }
+
     pub fn y(self) -> i32 {
         self.y
+    }
+
+    pub fn y_as_usize(self) -> usize {
+        self.y
+            .try_into()
+            .unwrap_or_else(|_| panic!("Error converting {:?} to unsigned", self))
     }
 
     pub fn vline(x: i32, start: i32, end: i32) -> impl Iterator<Item = Coord> {
