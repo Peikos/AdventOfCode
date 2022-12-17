@@ -1,0 +1,14 @@
+int = { ASCII_DIGIT+ }
+
+WHITESPACE = _{ " " }
+
+valve_str = _{"Valve"}
+flow_rate_str = _{"has flow rate="}
+tunnels_str = _{"; tunnels lead to valves" | "; tunnel leads to valve"}
+
+valve = { ASCII_ALPHA_UPPER{2} }
+
+comma = _{ "," }
+valves = { ( valve ~ comma? )+ }
+
+location = { valve_str ~ valve ~ flow_rate_str ~ int ~ tunnels_str ~ valves }

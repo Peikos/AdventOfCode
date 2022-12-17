@@ -1,3 +1,5 @@
+#![feature(is_some_and)]
+
 extern crate pest;
 #[macro_use]
 extern crate pest_derive;
