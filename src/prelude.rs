@@ -456,6 +456,66 @@ impl std::ops::SubAssign for Coord {
     }
 }
 
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash)]
+pub struct Coord3 {
+    x: i32,
+    y: i32,
+    z: i32,
+}
+
+impl Coord3 {
+    pub const ORIGIN: Coord3 = Coord3::new(0, 0, 0);
+
+    pub const fn new(x: i32, y: i32, z: i32) -> Coord3 {
+        Coord3 { x, y, z }
+    }
+
+    pub fn x(self) -> i32 {
+        self.x
+    }
+
+    pub fn x_as_usize(self) -> usize {
+        self.x
+            .try_into()
+            .unwrap_or_else(|_| panic!("Error converting {:?} to unsigned", self))
+    }
+
+    pub fn y(self) -> i32 {
+        self.y
+    }
+
+    pub fn y_as_usize(self) -> usize {
+        self.y
+            .try_into()
+            .unwrap_or_else(|_| panic!("Error converting {:?} to unsigned", self))
+    }
+
+    pub fn z(self) -> i32 {
+        self.z
+    }
+
+    pub fn z_as_usize(self) -> usize {
+        self.z
+            .try_into()
+            .unwrap_or_else(|_| panic!("Error converting {:?} to unsigned", self))
+    }
+
+    pub fn from(line: String) -> Coord3 {
+        let xyz = line
+            .split(",")
+            .map(|n| {
+                n.parse()
+                    .unwrap_or_else(|_| panic!("Error parsing coordinate {}!", n))
+            })
+            .collect::<Vec<_>>();
+        Coord3 {
+            x: xyz[0],
+            y: xyz[1],
+            z: xyz[2],
+        }
+    }
+}
+
 /// L_1 metric (as a taxicab).
 #[derive(Copy, Clone, Debug, PartialEq, Eq)]
 pub struct Manhattan;
